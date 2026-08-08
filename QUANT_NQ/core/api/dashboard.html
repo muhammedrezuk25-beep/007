@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>QUANT_NQ — مركز القيادة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0e14; --surface: rgba(21, 26, 35, 0.7); --surface-2: rgba(34, 42, 56, 0.8);
+    --border: #222a38; --border-hover: #3a465c;
+    --text: #f8fafc; --muted: #94a3b8; --faint: #475569;
+    --accent: #00f0ff; --accent-dim: rgba(0, 240, 255, 0.15);
+    --healthy: #10b981; --degraded: #f59e0b; --unhealthy: #f43f5e;
+    --font-ar: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --radius: 12px; --blur: blur(12px);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font-ar); min-height: 100vh; line-height: 1.5; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(176, 38, 255, 0.03) 0%, transparent 50%); z-index: -1; pointer-events: none; }
+  .mono { font-family: var(--font-mono); direction: ltr; unicode-bidi: isolate; }
+  
+  /* Header & Toolbar */
+  header { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding: 16px 28px; border-bottom: 1px solid var(--border); background: rgba(11, 14, 20, 0.8); backdrop-filter: var(--blur); position: sticky; top: 0; z-index: 100; }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand h1 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: 0.5px; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .brand .ver { font-family: var(--font-mono); color: var(--accent); font-size: 11px; border: 1px solid var(--accent-dim); background: rgba(0,240,255,0.05); border-radius: 6px; padding: 2px 8px; }
+  
+  .conn { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-inline-start: 20px; }
+  .conn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; transition: 0.3s; }
+  .conn.live .dot { background: var(--healthy); box-shadow: 0 0 10px var(--healthy); animation: pulse-green 2s infinite; }
+  @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+  .toolbar { display: flex; gap: 12px; margin-inline-start: auto; align-items: center; flex-wrap: wrap; }
+  .search-box { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; font-family: var(--font-ar); font-size: 13px; outline: none; transition: 0.2s; width: 200px; }
+  .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+  
+  .btn { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; font-family: var(--font-ar); font-weight: 500; }
+  .btn:hover { background: var(--border); border-color: var(--border-hover); }
+  .btn.primary { background: var(--accent-dim); color: var(--accent); border-color: rgba(0,240,255,0.3); }
+  .btn.primary:hover { background: rgba(0,240,255,0.2); }
+  .btn.danger { background: rgba(244, 63, 94, 0.1); color: var(--unhealthy); border-color: rgba(244, 63, 94, 0.3); }
+  .btn.danger:hover { background: rgba(244, 63, 94, 0.2); }
+
+  /* Main Layout */
+  main { display: grid; grid-template-columns: 1fr 380px; gap: 24px; padding: 24px 28px; max-width: 1600px; margin: 0 auto; }
+  @media (max-width: 1024px) { main { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); backdrop-filter: var(--blur); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .panel-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
+  .panel-header h2 { font-size: 14px; color: var(--text); font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
+  .panel-header .count { font-family: var(--font-mono); color: var(--accent); background: var(--accent-dim); padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+
+  /* Atoms List */
+  .atoms-container { overflow-y: auto; max-height: calc(100vh - 180px); }
+  .atom-row { display: grid; grid-template-columns: 12px 60px 1fr 100px 120px 50px 70px; gap: 16px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); transition: 0.2s; }
+  .atom-row:hover { background: rgba(255,255,255,0.02); }
+  .atom-row.flash { background: var(--accent-dim); }
+
+  .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); position: relative; }
+  .pulse-dot.state-running { background: var(--healthy); box-shadow: 0 0 8px var(--healthy); }
+  .pulse-dot.state-failed { background: var(--unhealthy); box-shadow: 0 0 8px var(--unhealthy); }
+  .pulse-dot.state-stopped { background: var(--degraded); }
+
+  .atom-id { font-family: var(--font-mono); color: var(--muted); font-size: 13px; }
+  .atom-name { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .atom-name .n { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+  .atom-name .f { font-size: 11px; color: var(--faint); font-family: var(--font-mono); }
+  .critical-tag { color: var(--degraded); font-size: 10px; border: 1px solid var(--degraded); border-radius: 4px; padding: 1px 5px; margin-inline-start: 6px; background: rgba(245, 158, 11, 0.1); }
+
+  .badge { font-size: 11px; padding: 4px 10px; border-radius: 6px; text-align: center; font-weight: 600; white-space: nowrap; letter-spacing: 0.5px; }
+  .badge.state-running { background: rgba(16, 185, 129, 0.15); color: var(--healthy); border: 1px solid rgba(16, 185, 129, 0.3); }
+  .badge.state-failed { background: rgba(244, 63, 94, 0.15); color: var(--unhealthy); border: 1px solid rgba(244, 63, 94, 0.3); }
+  .badge.state-stopped { background: rgba(245, 158, 11, 0.15); color: var(--degraded); border: 1px solid rgba(245, 158, 11, 0.3); }
+  .badge.state-registered, .badge.state-initializing { background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+
+  .health-msg { font-size: 11px; color: var(--muted); font-family: var(--font-mono); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .restart-count { font-family: var(--font-mono); font-size: 12px; color: var(--faint); text-align: center; }
+
+  /* Sidebar */
+  aside { display: flex; flex-direction: column; gap: 24px; }
+  .events-box { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; }
+  .event-row { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 12px; display: flex; gap: 10px; align-items: center; transition: 0.2s; }
+  .event-row:hover { background: rgba(255,255,255,0.02); }
+  .event-row .t { font-family: var(--font-mono); color: var(--faint); flex: none; font-size: 11px; }
+  .event-row .name { font-family: var(--font-mono); color: var(--text); font-weight: 500; }
+  .event-row .trace { font-family: var(--font-mono); color: var(--accent); font-size: 10px; margin-inline-start: auto; background: var(--accent-dim); padding: 2px 6px; border-radius: 4px; cursor: help; border: 1px solid rgba(0,240,255,0.2); }
+  
+  .event-row.sev-fail .name { color: var(--unhealthy); }
+  .event-row.sev-warn .name { color: var(--degraded); }
+  .event-row.sev-ok .name { color: var(--healthy); }
+
+  .metrics-box { padding: 8px 0; max-height: 300px; overflow-y: auto; }
+  .metric-row { display: flex; justify-content: space-between; padding: 8px 20px; font-size: 12px; border-bottom: 1px solid var(--border); }
+  .metric-row:hover { background: rgba(255,255,255,0.02); }
+  .metric-row .k { color: var(--muted); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .metric-row .v { font-family: var(--font-mono); color: var(--accent); font-weight: 600; flex: none; padding-inline-start: 12px; }
+
+  /* Auth Modal */
+  dialog { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; color: var(--text); backdrop-filter: blur(20px); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-width: 400px; width: 100%; margin: auto; }
+  dialog::backdrop { background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); }
+  dialog h3 { margin: 0 0 16px 0; color: var(--accent); }
+  dialog input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; margin-bottom: 16px; font-family: var(--font-mono); outline: none; }
+  dialog input:focus { border-color: var(--accent); }
+  dialog .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--faint); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>QUANT_NQ</h1>
+    <span class="ver mono" id="core-version">v—</span>
+  </div>
+  <div class="conn" id="conn"><span class="dot"></span><span id="conn-label">جارٍ الاتصال…</span></div>
+  
+  <div class="toolbar">
+    <input type="text" id="search-box" class="search-box" placeholder="ابحث بالاسم، ID، أو الحالة..." oninput="renderAtoms()" />
+    <button class="btn primary" onclick="triggerRescan()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      إعادة فحص (Rescan)
+    </button>
+    <button class="btn" onclick="openAuthModal()">🔑 API Key</button>
+  </div>
+</header>
+
+<main>
+  <section class="panel">
+    <div class="panel-header">
+      <h2>الذرات النشطة <span class="count" id="atoms-count">0</span></h2>
+      <div id="pills" style="display:flex; gap:8px; font-size:12px;"></div>
+    </div>
+    <div class="atoms-container" id="atoms-list"></div>
+  </section>
+
+  <aside>
+    <div class="panel">
+      <div class="panel-header"><h2>سجل الأحداث الحي</h2></div>
+      <div class="events-box" id="events"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><h2>القياسات (Metrics)</h2></div>
+      <div class="metrics-box" id="metrics-list"></div>
+    </div>
+  </aside>
+</main>
+
+<dialog id="auth-modal">
+  <h3>مصادقة النواة (API Key)</h3>
+  <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">يرجى إدخال مفتاح الوصول الخاص بالنواة للاتصال الآمن.</p>
+  <input type="password" id="api-key-input" placeholder="X-API-Key..." />
+  <div class="dialog-actions">
+    <button class="btn" onclick="document.getElementById('auth-modal').close()">إلغاء</button>
+    <button class="btn primary" onclick="saveApiKey()">حفظ واتصال</button>
+  </div>
+</dialog>
+
+<script>
+const STATE_LABEL = { discovered:"مكتشَفة", registered:"مسجَّلة", initializing:"تهيئة", initialized:"جاهزة", starting:"بدء", running:"تعمل", stopping:"إيقاف", stopped:"متوقفة", failed:"فاشلة", unloaded:"مُلغاة" };
+const EVENT_SEVERITY = { "core.atom.started":"ok", "core.atom.restarted":"ok", "core.atom.failed":"fail", "core.atom.restart_failed":"fail", "core.critical_atom.unhealthy":"fail", "core.atom.unhealthy":"warn", "core.atom.stopped":"neutral" };
+
+let atoms = new Map();
+let wsConnection = null;
+
+const el = (sel) => document.querySelector(sel);
+
+// --- إدارة المصادقة (Auth Management) ---
+function getApiKey() { return localStorage.getItem('quant_api_key') || ''; }
+function openAuthModal() { el('#api-key-input').value = getApiKey(); el('#auth-modal').showModal(); }
+function saveApiKey() { 
+  localStorage.setItem('quant_api_key', el('#api-key-input').value.trim()); 
+  el('#auth-modal').close(); 
+  initApp(); // إعادة الاتصال بالمفتاح الجديد
+}
+
+// ⚠️ إغلاق الفجوة 1: تغليف طلبات HTTP لتشمل ترويسة المصادقة
+async function secureFetch(url, options = {}) {
+  const headers = { ...options.headers };
+  const key = getApiKey();
+  if (key) headers['X-API-Key'] = key;
+  
+  const res = await fetch(url, { ...options, headers });
+  if (res.status === 401) { openAuthModal(); throw new Error("Unauthorized"); }
+  return res;
+}
+
+// --- أدوات مساعدة ---
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function fmtTime(d){ return d.toLocaleTimeString('en-GB', {hour12:false}); }
+
+// --- واجهة المستخدم ---
+function renderPills(){
+  const list = [...atoms.values()];
+  const running = list.filter(a=>a.state==='running').length;
+  const failed = list.filter(a=>a.state==='failed').length;
+  el('#pills').innerHTML = `
+    <span style="color:var(--healthy)">● ${running} تعمل</span>
+    <span style="color:var(--unhealthy); margin-inline-start:10px;">● ${failed} فاشلة</span>
+  `;
+}
+
+function atomRowHTML(a){
+  const health = a.health ? escapeHtml(a.health.message) : '';
+  const name = escapeHtml(a.name);
+  const version = escapeHtml(a.version);
+  return `
+    <div class="atom-row" data-id="${a.id}">
+      <span class="pulse-dot state-${a.state}"></span>
+      <span class="atom-id">#${a.id}</span>
+      <span class="atom-name">
+        <div class="n">${name}${a.critical ? '<span class="critical-tag">Critical</span>' : ''}</div>
+        <div class="f">v${version}</div>
+      </span>
+      <span class="badge state-${a.state}">${STATE_LABEL[a.state] || a.state}</span>
+      <span class="health-msg" title="${health}">${health}</span>
+      <span class="restart-count">${a.restart_count > 0 ? '↻'+a.restart_count : '—'}</span>
+      <button class="btn danger" onclick="stopAtom(${a.id})" ${a.state !== 'running' ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>إيقاف</button>
+    </div>`;
+}
+
+function renderAtoms(){
+  const container = el('#atoms-list');
+  const searchTerm = el('#search-box').value.toLowerCase();
+  
+  let filtered = [...atoms.values()].sort((a,b)=>a.id-b.id);
+  if (searchTerm) {
+    filtered = filtered.filter(a => 
+      String(a.id).includes(searchTerm) || 
+      (a.name || '').toLowerCase().includes(searchTerm) || 
+      (STATE_LABEL[a.state] || a.state).toLowerCase().includes(searchTerm)
+    );
+  }
+
+  el('#atoms-count').textContent = filtered.length;
+  if (filtered.length === 0){
+    container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--muted);">لا توجد ذرات مطابقة.</div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(atomRowHTML).join('');
+  renderPills();
+}
+
+function pushEvent(name, payload){
+  const box = el('#events');
+  const sev = EVENT_SEVERITY[name] || 'ok';
+  const row = document.createElement('div');
+  row.className = `event-row sev-${sev}`;
+  const traceHtml = payload.trace_id ? `<span class="trace" title="Trace ID: ${payload.trace_id}">${payload.trace_id.split('-')[0]}</span>` : '';
+  row.innerHTML = `<span class="t">${fmtTime(new Date())}</span><span class="name">${name}${payload.atom_id!==undefined?' #'+payload.atom_id:''}</span>${traceHtml}`;
+  box.prepend(row);
+  while (box.children.length > 100) box.removeChild(box.lastChild);
+}
+
+// ⚠️ إغلاق الفجوة 3: تطهير مفاتيح وقيم المقاييس لمنع حقن XSS
+function renderMetrics(m){
+  const rows = [];
+  for (const [k,v] of Object.entries(m.counters||{})) rows.push([k, v]);
+  for (const [k,v] of Object.entries(m.gauges||{})) rows.push([k, (Math.round(v*100)/100)]);
+  for (const [k,v] of Object.entries(m.timers||{})) rows.push([k+' (avg)', v.avg_ms.toFixed(1)+'ms']);
+  
+  const box = el('#metrics-list');
+  box.innerHTML = rows.length ? rows.map(([k,v])=>`<div class="metric-row"><span class="k">${escapeHtml(k)}</span><span class="v">${escapeHtml(String(v))}</span></div>`).join('')
+    : `<div style="padding:20px; text-align:center; color:var(--muted);">لا توجد مقاييس.</div>`;
+}
+
+function applySnapshot(msg){
+  atoms = new Map(msg.atoms.map(a=>[a.id, a]));
+  renderAtoms();
+  if (msg.metrics) renderMetrics(msg.metrics);
+}
+
+function applyEvent(msg){
+  pushEvent(msg.name, msg.payload || {});
+  if (msg.payload && msg.payload.atom_id !== undefined){
+    const a = atoms.get(msg.payload.atom_id);
+    if (a){
+      if (msg.name === 'core.atom.failed') a.state = 'failed';
+      if (msg.name === 'core.atom.started' || msg.name === 'core.atom.restarted') a.state = 'running';
+      if (msg.name === 'core.atom.stopped') a.state = 'stopped';
+      if (msg.name === 'core.atom.unhealthy' || msg.name === 'core.critical_atom.unhealthy') { a.health = {state:'unhealthy', message: a.health?.message || ''}; }
+      renderAtoms();
+    }
+  }
+}
+
+// --- العمليات التفاعلية (Actions) ---
+async function stopAtom(id) {
+  if(!confirm(`هل أنت متأكد من إيقاف الذرة #${id}؟`)) return;
+  try { await secureFetch(`/api/atoms/${id}/stop`, { method: 'POST' }); } 
+  catch (e) { console.error(e); }
+}
+
+async function triggerRescan() {
+  try { 
+    await secureFetch(`/api/rescan`, { method: 'POST' }); 
+    pushEvent('system.rescan_triggered', { trace_id: 'manual' });
+  } catch (e) { console.error(e); }
+}
+
+// --- الاتصال والتهيئة ---
+function connectWS(){
+  if (wsConnection) wsConnection.close();
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const key = getApiKey();
+  // ⚠️ إغلاق الفجوة 2: تمرير المفتاح كـ Query Parameter في مصافحة الـ WebSocket
+  const wsUrl = `${proto}://${location.host}/ws/events${key ? '?api_key=' + encodeURIComponent(key) : ''}`;
+  
+  wsConnection = new WebSocket(wsUrl);
+  wsConnection.onopen = () => { el('#conn').classList.add('live'); el('#conn-label').textContent = 'متصل (Secure)'; };
+  wsConnection.onclose = (e) => {
+    el('#conn').classList.remove('live'); el('#conn-label').textContent = 'انقطع الاتصال';
+    if (e.code === 4401) openAuthModal(); // طلب المفتاح إذا رفض الخادم الاتصال
+    else setTimeout(connectWS, 3000);
+  };
+  wsConnection.onerror = () => wsConnection.close();
+  wsConnection.onmessage = (evt) => {
+    const msg = JSON.parse(evt.data);
+    if (msg.type === 'snapshot') applySnapshot(msg);
+    else if (msg.type === 'event') applyEvent(msg);
+  };
+}
+
+async function initApp() {
+  try {
+    const res = await secureFetch('/api/health');
+    const data = await res.json();
+    el('#core-version').textContent = 'v' + data.core_version;
+    connectWS();
+  } catch (e) {
+    // الخطأ 401 سيعالجه secureFetch بفتح النافذة
+    console.warn("فشل التهيئة المبدئية", e);
+  }
+}
+
+// بدء التشغيل
+initApp();
+</script>
+</body>
+</html>
